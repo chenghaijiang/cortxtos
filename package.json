@@ -1,0 +1,23 @@
+{
+  "name": "cortxtos",
+  "version": "0.1.0",
+  "description": "CortxtOS：基于 Pi Agent Harness 的本地优先个人 AI 工作台（知识库 + 自动化工作流 + 多模态路由）",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=22.19"
+  },
+  "bin": {
+    "cortxtos": "./bin/cortxtos.ts"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "5.9"
+  }
+}
