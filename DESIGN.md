@@ -81,7 +81,14 @@ cortxtos/
 1. **交互式 TUI**：`cd ~/cortxt-vault && pi`，装载 cortxtos package（extensions + skills）
 2. **无人值守 print 模式**：launchd 事件触发 `pi -p "<处理指令>"`，冷启动、无守护进程
 
-二期（明确排除出一期）：用 Pi TypeScript SDK / RPC 嵌入独立工作台 UI 面板。
+二期落地：Web 工作台**深度模式**用 Pi 的第四种形态——`pi --mode rpc` 长驻子进程（JSONL 双向协议），由 serve 代理给浏览器；TypeScript SDK 嵌入仍是候选（当前 RPC 已够用，不必把 pi 的 API 面贴进本仓库）。
+
+| # | 形态 | 入口 | 会话生命周期 | 安全策略 |
+|---|------|------|--------------|----------|
+| 1 | TUI 交互 | `pi` | 人坐在那儿 | 不受限（信任本人） |
+| 2 | print 无人值守 | launchd / `cortxtos inbox` / `run_headless_task` | 冷启动即弃 | `session-guard` 白名单（禁 bash/edit） |
+| 3 | Web 快速模式 | serve `/api/chat` | 每请求一轮 tool-calling 循环 | 服务端 5 工具白名单，模型摸不到 shell |
+| 4 | Web 深度模式 | serve `/api/agent/*` | 单会话长驻，空闲 10 分钟回收 | `chat-guard` 浏览器确认闸门 |
 
 ## 4. 知识库规范（第一天锁定，避免迁移）
 
@@ -199,6 +206,14 @@ Pi 刻意无内置权限系统；处理任意 inbox 文件存在 prompt injectio
 - 交互 TUI 会话不受限（信任本人操作）；
 - **明确不做**：Docker/microVM 沙箱（macOS 上体验重，个人机器场景不需要）。
 
+**Web 深度会话（二期，via `chat-guard` extension）——第三种信任级**：有人盯着屏幕，所以既不像 TUI 那样全放，也不像无人值守那样全禁，而是**把高危动作降级成一次点击**：
+
+- `bash` 一律确认，命中 `rm/sudo/mkfs/dd/chmod -R/:(){/kill/reboot/shutdown/git push/launchctl` 时确认标题升级为「⚠ 高危命令确认」；
+- `write`/`edit` 路径解析到 vault 之外才确认，界内自主（笔记本来就是往里写东西）；`read`/`ls`/`glob`/`grep` 与本仓库自带低风险工具直接放行；
+- 未知工具（含 MCP 引入的外部能力）**默认确认**——新能力不会静默拿到权限；
+- 双超时：前端 120s 无操作自动 `cancelled`，extension 侧 `ctx.ui.confirm(..., {timeout: 300000})` 由 pi 自动按拒绝 resolve；拒绝/超时返回 `{block: true, reason}`，模型收到原因但不崩；
+- `chat-guard` 只通过 `-e` 注入 Web 深度会话，launchd 管道仍走 `session-guard`，两条策略互不干扰（前者判断"要不要问人"，后者判断"这个工具存不存在"）。
+
 ## 8. 一期 Skills/Extensions 清单（封板）
 
 | # | 名称 | 形态 | 职责 |
@@ -209,6 +224,17 @@ Pi 刻意无内置权限系统；处理任意 inbox 文件存在 prompt injectio
 | 4 | `session-guard` | extension | 无人值守会话工具裁剪（白名单，禁 bash） |
 
 CLI：`cortxtos init`（建 vault + 生成配置 + 挂 launchd plist）、`cortxtos doctor`（环境自检：Node 22 / Pi 安装 / Ollama 运行 / 模型已拉取 / launchd 已挂载 / 内存检测选模型变体）。
+
+### 8.1 二期新增（Web 深度模式，随 RPC 嵌入落地）
+
+| # | 名称 | 形态 | 职责 |
+|---|------|------|------|
+| 5 | `agent-session` | `src/` 模块（非 extension） | pi RPC 子进程生命周期：LF 分帧、命令 id 关联、事件翻译表、单会话注册表 + 空闲回收 |
+| 6 | `chat-guard` | extension | Web 深度会话确认闸门（bash 全确认、vault 外写入确认、未知工具默认确认） |
+| 7 | `planner` | extension tool | `update_plan`：规划面板数据源，全量写 `workflows/plan-*.md` |
+| 8 | `spawn-agent` | extension tool | `run_headless_task`：深度会话委派批量活给无人值守会话（最小多 agent） |
+
+快速模式（Ollama 原生 tool-calling 循环，`/api/chat` + `agent: true`）与本表并存，不互相替代：快速零冷启动、深度能力全。
 
 ## 9. MVP 验收标准（Definition of Done）
 
@@ -230,7 +256,11 @@ CLI：`cortxtos init`（建 vault + 生成配置 + 挂 launchd plist）、`cortx
 
 知识图谱 / 桌面 GUI / 多平台 / 安装包 / LLM 自评路由 / sub-agent 编排 / 视频管道 / 日报生成 / 代码库巡检 / 沙箱容器 / 增量索引 / 云端 API 默认路径 / 守护进程。
 
-以上均进二期 backlog，非经重构设计不进入一期。
+以上均进二期 backlog，非经重构设计不进入一期。二期部分解冻：
+
+- **sub-agent** 仅开最小口子：`run_headless_task` 单向委派给已有无人值守管道（不是自建 DAG 编排，不做 agent 之间自由通信）；
+- **worktree 隔离**仍排除：vault 不是 git 仓库，没有分支可开；若将来 `git init` 了笔记库，再单独设计"深会话在 worktree 实验、成功后合回"的流程；
+- **守护进程**仍不做：`pi --mode rpc` 子进程由 serve 拉起并随其退出，不独立常驻、不自愈重拉（launchd 也不管它）。
 
 ## 12. 附：Pi 上游关键事实（2026-11 核查）
 
@@ -239,3 +269,27 @@ CLI：`cortxtos init`（建 vault + 生成配置 + 挂 launchd plist）、`cortx
 - 扩展机制：TypeScript Extensions、Skills、Prompt Templates、Themes；打包为 Pi package 经 npm 或 `pi install git:` 分发（本项目走本地路径）。
 - 相关包：`pi-ai`（多 provider 统一 LLM API，含 Ollama）、`pi-agent-core`（agent runtime）、`pi-durable`（持久会话/任务运行时，二期候选）。
 - 要求 Node.js ≥ 22.19；会话/上下文/Compaction 由 Pi 负责，CortxtOS 不重造。
+
+以下为深度模式实测确认（pi 1.5.0，本方案的地基）：
+
+- RPC 模式下 extension 的 `ctx.ui.confirm/select/input/editor` 会自动转为 `extension_ui_request` 写 stdout 并**阻塞等待** `extension_ui_response`——浏览器确认卡片是官方支持路径，不需要 hack；`notify/setStatus` 是 fire-and-forget。
+- `ctx.mode === "rpc"` 且 `ctx.hasUI === true`；`tool_call` 拦截器返回 `{block, reason}` 在 RPC 下同样生效。
+- JSONL **只能按 LF 分帧**：上游文档明警告 Node `readline` 会在 U+2028/U+2029 断行（笔记正文里合法），故自己写 Buffer 缓冲按 `0x0A` 切。
+- `tool_execution_end` **不带 args**（只有 `toolCallId/toolName/result/isError`）：规划面板需要步骤数据，故会话层按 `toolCallId` 缓存 start 的 args 再补齐。
+- 本轮收尾看 `agent_settled` 而不是 `agent_end`：后者之后仍可能跟着重试/压缩/follow-up。
+- `prompt` 命令的 `response.data.disposition ∈ started|queued|handled`，`handled` 意味着被 extension 吃掉、不会启动 agent 循环。
+- ollama provider 可用 `--provider ollama --model <tag>` 直连本地（无需额外 apiKey），模型清单用 `pi --list-models` 核。
+
+## 13. Web 深度模式：关键设计决策（二期）
+
+**为什么代理 RPC 而不是把工具循环重写第二遍。** 手写迷你 ReAct 循环（快速模式）能长出的能力有上限：要么自己实现压缩/技能/工具裁剪，要么永远缺能力。代理 pi 子进程后，九项能力里七项直接继承上游，本仓库只写三样东西：**分帧与命令关联、事件翻译、安全闸门**。代价（分钟级冷启动、单会话）在本地单模型场景下本来就无法避免。
+
+**为什么保留快速模式。** 两者不是新旧关系而是信任级差异：快速零冷启动、零写入能力，适合"问一下"；深度适合"做一件事"。共享同一把模型互斥锁（`chatRunning` / `pipeline.running` / `deepTurn` 三个入口同一检查），避免 17GB 模型被双开。
+
+**降级面。** pi 不在 PATH 时只有深度模式报错（`/api/agent/start` 返 500），快速模式与 launchd 管道不受影响；serve 不假定 pi 一定可达。
+
+**事件翻译表当纯函数导出。** `splitFrames` / `translatePiEvent` / `attachStartArgs` 均可离线单测（含 U+2028 陷阱用例），不必拉起 pi 就能验收协议层。
+
+**计划不落数据库。** `update_plan` 每次全量写 `workflows/plan-*.md`（Markdown checkbox）：断电可恢复、可被 kb_search 检索、用户能手工改，与"笔记是真相源"一致。
+
+**断连不杀进程。** 浏览器刷新/关掉只摘除事件出口（`res.on("close")` 不是 `req.on("close")`——Node 读完请求体就会 emit 后者），pi 子进程继续跑完本轮，回来用同一 sessionId 续聊。

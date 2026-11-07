@@ -1,9 +1,11 @@
-// cortxtos doctor：环境自检（票 01 验收项）
+// cortxtos doctor：环境自检（票 01 验收项；票 09 纳入 embedding 模型与索引状态）
 // 检查 Node/Pi/Ollama/模型/内存选档/whisper/vault/launchd，输出 ✅⚠️❌
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { CONFIG_PATH, loadConfig, vaultRoot } from "./config.ts";
+import { findWhisperModel } from "./asr.ts";
+import { CONFIG_PATH, indexPath, loadConfig, vaultRoot } from "./config.ts";
+import type { CortxtosConfig } from "./config.ts";
 
 export interface CheckResult {
   level: "ok" | "warn" | "fail";
@@ -64,6 +66,30 @@ function checkModel(tags: string[]): CheckResult {
   return { level: "fail", label: "主模型 qwen3.8:27b", detail: "缺失：ollama pull qwen3.8:27b" };
 }
 
+function checkEmbeddingModel(tags: string[], model: string): CheckResult {
+  if (tags.includes(model)) return { level: "ok", label: `embedding ${model}`, detail: "已拉取（语义检索可用）" };
+  return { level: "warn", label: `embedding ${model}`, detail: `未拉取：kb_search 自动退回关键字检索；ollama pull ${model} 后跑 cortxtos reindex 启用语义` };
+}
+
+// 索引状态懒加载 vecstore（node:sqlite）：旧 Node 环境下 import 失败也不拖垮 doctor 其余检查
+async function checkIndex(): Promise<CheckResult> {
+  try {
+    const { dirtyNoteCount, readIndexMeta } = await import("./vecstore.ts");
+    const meta = readIndexMeta();
+    if (meta === null) {
+      return { level: "warn", label: "向量索引", detail: `未建立（${indexPath()} 不存在）：cortxtos reindex 或等夜间重建；当前检索走文件版关键字` };
+    }
+    const dirty = dirtyNoteCount();
+    return {
+      level: "ok",
+      label: "向量索引",
+      detail: `上次重建 ${meta.builtAt}，${meta.fileCount} 篇 / ${meta.chunkCount} 块（dim ${meta.dim}）${dirty > 0 ? `；重建后又有 ${dirty} 篇写入，下次重建摄取` : ""}`,
+    };
+  } catch (e) {
+    return { level: "warn", label: "向量索引", detail: `无法读取：${e instanceof Error ? e.message : String(e)}` };
+  }
+}
+
 function checkMemory(): CheckResult {
   const r = spawnSync("sysctl", ["-n", "hw.memsize"], { encoding: "utf8" });
   const bytes = Number.parseInt((r.stdout ?? "").trim(), 10);
@@ -86,6 +112,14 @@ function checkOnPath(binary: string, label: string, hint: string, missingLevel: 
   return { level: found ? "ok" : missingLevel, label, detail: found ? (r.stdout ?? "").trim() : `未找到，${hint}` };
 }
 
+function checkWhisperModel(asrModel: string): CheckResult {
+  const found = findWhisperModel(asrModel);
+  if (found === null) {
+    return { level: "warn", label: "whisper 模型文件", detail: `未就位，音频管道优雅跳过；从 huggingface.co/ggerganov/whisper.cpp 下载 ggml-${asrModel}-q5_0.bin 放入 ~/.cortxtos/models/` };
+  }
+  return { level: "ok", label: "whisper 模型文件", detail: found };
+}
+
 function checkVault(vault: string): CheckResult {
   if (!existsSync(vault)) {
     return { level: "warn", label: "vault 目录", detail: `${vault} 不存在，等票 02 的 cortxtos init 创建` };
@@ -106,23 +140,33 @@ function checkLaunchd(): CheckResult {
   return { level: "ok", label: "launchd 任务", detail: `${lines.length} 个已挂载` };
 }
 
-export async function runDoctor(): Promise<number> {
-  const { config, created } = loadConfig();
+/** 汇总全部检查项（runDoctor 打印与 Web /api/status 共用同一数据源） */
+export async function gatherChecks(config: CortxtosConfig): Promise<CheckResult[]> {
   const results: CheckResult[] = [];
-  if (created) {
-    console.log(`ℹ️  首次运行：已生成默认配置 ${CONFIG_PATH}`);
-  }
   results.push(checkNode());
   results.push(checkPi());
   const { tags, result: ollamaResult } = await checkOllama(config.ollama.baseUrl);
   results.push(ollamaResult);
   if (ollamaResult.level === "ok") {
     results.push(checkModel(tags));
+    results.push(checkEmbeddingModel(tags, config.tiers.embedding.model));
   }
   results.push(checkMemory());
+  results.push(checkOnPath("pdftotext", "poppler pdftotext（PDF 管道依赖）", "brew install poppler（票 05 需要）", "warn"));
   results.push(checkOnPath("whisper-cli", "whisper.cpp（音频管道依赖）", "brew install whisper-cpp（票 08 前可用）", "warn"));
+  results.push(checkWhisperModel(config.asr.model));
   results.push(checkVault(vaultRoot(config)));
+  results.push(await checkIndex());
   results.push(checkLaunchd());
+  return results;
+}
+
+export async function runDoctor(): Promise<number> {
+  const { config, created } = loadConfig();
+  if (created) {
+    console.log(`ℹ️  首次运行：已生成默认配置 ${CONFIG_PATH}`);
+  }
+  const results = await gatherChecks(config);
 
   console.log("\ncortxtos doctor —— 工作台环境自检\n");
   for (const r of results) {

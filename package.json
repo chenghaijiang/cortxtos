@@ -13,11 +13,22 @@
   "bin": {
     "cortxtos": "./bin/cortxtos.ts"
   },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "bash scripts/cortxtos-ctl.sh start",
+    "stop": "bash scripts/cortxtos-ctl.sh stop",
+    "restart": "bash scripts/cortxtos-ctl.sh restart",
+    "status": "bash scripts/cortxtos-ctl.sh status"
+  },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
     "typescript": "5.9"
+  },
+  "dependencies": {
+    "sqlite-vec": "^0.1.9"
   }
 }

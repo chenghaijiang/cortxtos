@@ -1,0 +1,2896 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nova · AI 个人工作台</title>
+<style>
+  :root {
+    --bg: #f3f4fa;
+    --panel: #ffffff;
+    --panel-2: #fafaff;
+    --border: rgba(18, 20, 45, 0.08);
+    --border-strong: rgba(18, 20, 45, 0.12);
+    --text: #14172e;
+    --text-2: #5b6080;
+    --text-3: #8d92ab;
+    --accent: #6d5efc;
+    --accent-soft: rgba(109, 94, 252, 0.1);
+    --accent-2: #16b6cf;
+    --green: #12a97a;
+    --green-soft: rgba(18, 169, 122, 0.12);
+    --amber: #d98a13;
+    --amber-soft: rgba(217, 138, 19, 0.12);
+    --rose: #e0526b;
+    --sidebar: linear-gradient(180deg, #171a35 0%, #0c0e1f 100%);
+    --sidebar-text: #c6c9e2;
+    --sidebar-dim: #7c82a6;
+    --shadow-sm: 0 1px 2px rgba(17, 19, 45, 0.05);
+    --shadow: 0 1px 2px rgba(17, 19, 45, 0.04), 0 16px 36px -18px rgba(17, 19, 45, 0.28);
+    --radius: 16px;
+    --font: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0a0b14;
+    --panel: #12141f;
+    --panel-2: #161927;
+    --border: rgba(255, 255, 255, 0.07);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --text: #eef0ff;
+    --text-2: #a3a8c6;
+    --text-3: #767c9d;
+    --accent: #8072ff;
+    --accent-soft: rgba(128, 114, 255, 0.16);
+    --accent-2: #2fd3ea;
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, 0.14);
+    --amber: #f0b34a;
+    --amber-soft: rgba(240, 179, 74, 0.14);
+    --rose: #f4738a;
+    --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.03);
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 24px 48px -24px #000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(720px 420px at 78% -8%, rgba(109, 94, 252, 0.14), transparent 62%),
+      radial-gradient(620px 380px at 12% 4%, rgba(22, 182, 207, 0.1), transparent 60%);
+    z-index: 0;
+  }
+
+  [data-theme="dark"] body::before {
+    background:
+      radial-gradient(760px 440px at 80% -10%, rgba(109, 94, 252, 0.24), transparent 64%),
+      radial-gradient(640px 400px at 8% 6%, rgba(22, 182, 207, 0.14), transparent 62%);
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 244px minmax(0, 1fr);
+    height: 100vh;
+  }
+
+  /* ============ Sidebar ============ */
+  .sidebar {
+    background: var(--sidebar);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 14px 16px;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px 22px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7c6bff 0%, #4d7cff 50%, #22c9e0 100%);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 6px 16px -6px rgba(109, 94, 252, 0.9);
+    flex: none;
+  }
+
+  .brand-mark svg { width: 17px; height: 17px; }
+
+  .brand-name {
+    font-size: 15px;
+    font-weight: 650;
+    color: #fff;
+    letter-spacing: 0.2px;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--sidebar-dim);
+    margin-top: 1px;
+  }
+
+  .nav-label {
+    font-size: 10.5px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--sidebar-dim);
+    padding: 0 10px 8px;
+    font-weight: 600;
+  }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-size: 13.5px;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    transition: background 0.16s ease, color 0.16s ease;
+    position: relative;
+  }
+
+  .nav-item svg { width: 16px; height: 16px; opacity: 0.75; flex: none; }
+  .nav-item:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+  .nav-item:hover svg { opacity: 1; }
+
+  .nav-item.active {
+    background: linear-gradient(90deg, rgba(109, 94, 252, 0.28), rgba(109, 94, 252, 0.06));
+    color: #fff;
+    font-weight: 550;
+  }
+
+  .nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    border-radius: 0 3px 3px 0;
+    background: #8b7bff;
+  }
+
+  .nav-item.active svg { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+
+  .nav-item.active .nav-badge { background: rgba(139, 123, 255, 0.45); }
+
+  .sidebar-foot { margin-top: auto; padding-top: 18px; }
+
+  .plan-card {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .plan-title { font-size: 12px; color: #fff; font-weight: 600; display: flex; justify-content: space-between; }
+  .plan-title span { color: #a89cff; }
+  .plan-desc { font-size: 11px; color: var(--sidebar-dim); margin: 5px 0 9px; line-height: 1.5; }
+
+  .plan-bar { height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+  .plan-bar i { display: block; height: 100%; width: 68%; border-radius: 4px; background: linear-gradient(90deg, #7c6bff, #22c9e0); }
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.16s ease;
+  }
+
+  .user:hover { background: rgba(255, 255, 255, 0.06); }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8d7bff, #3f8bff);
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 650;
+    flex: none;
+  }
+
+  .user-name { font-size: 12.5px; color: #fff; font-weight: 550; line-height: 1.3; }
+  .user-mail { font-size: 10.5px; color: var(--sidebar-dim); }
+
+  /* ============ Main ============ */
+  .main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 26px;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--panel) 72%, transparent);
+    backdrop-filter: blur(14px);
+    flex: none;
+  }
+
+  .page-title { font-size: 14.5px; font-weight: 650; letter-spacing: -0.1px; }
+  .page-date { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+  .search {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 260px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    color: var(--text-3);
+    font-size: 12.5px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .search:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .search svg { width: 15px; height: 15px; flex: none; }
+  .search kbd {
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 10.5px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: var(--text-3);
+    background: var(--panel);
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text-2);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.16s ease;
+  }
+
+  .icon-btn:hover { color: var(--text); border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .dot {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rose);
+    box-shadow: 0 0 0 2px var(--panel);
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 26px 34px;
+    scroll-behavior: smooth;
+  }
+
+  .content::-webkit-scrollbar { width: 10px; }
+  .content::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; border: 3px solid transparent; background-clip: content-box; }
+  .content::-webkit-scrollbar-thumb:hover { background: var(--text-3); background-clip: content-box; }
+
+  /* Hero */
+  .hero {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .hero h1 {
+    font-size: 24px;
+    letter-spacing: -0.6px;
+    font-weight: 680;
+    line-height: 1.25;
+  }
+
+  .hero p { font-size: 13px; color: var(--text-2); margin-top: 5px; }
+  .hero p b { color: var(--accent); font-weight: 600; }
+
+  .hero-actions { margin-left: auto; display: flex; gap: 9px; flex: none; }
+
+  .btn {
+    height: 36px;
+    padding: 0 15px;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 560;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid transparent;
+    transition: transform 0.14s ease, box-shadow 0.16s ease, background 0.16s ease;
+  }
+
+  .btn svg { width: 15px; height: 15px; }
+  .btn:active { transform: translateY(1px); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #7c6bff, #5b5bf0);
+    color: #fff;
+    box-shadow: 0 10px 22px -12px rgba(109, 94, 252, 0.9);
+  }
+
+  .btn-primary:hover { box-shadow: 0 14px 26px -12px rgba(109, 94, 252, 1); }
+
+  .btn-ghost {
+    background: var(--panel);
+    border-color: var(--border);
+    color: var(--text-2);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 15px 16px 12px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .stat:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(17,19,45,.04), 0 22px 42px -22px rgba(17,19,45,.34); }
+
+  .stat-top { display: flex; align-items: center; justify-content: space-between; }
+  .stat-label { font-size: 11.5px; color: var(--text-2); font-weight: 520; }
+
+  .stat-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .stat-icon svg { width: 14px; height: 14px; }
+  .stat-icon.g { background: var(--green-soft); color: var(--green); }
+  .stat-icon.a { background: var(--amber-soft); color: var(--amber); }
+  .stat-icon.c { background: rgba(22, 182, 207, 0.12); color: var(--accent-2); }
+
+  .stat-value {
+    font-size: 27px;
+    font-weight: 680;
+    letter-spacing: -1px;
+    margin: 8px 0 0;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .trend {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 20px;
+    letter-spacing: 0;
+  }
+
+  .trend.up { color: var(--green); background: var(--green-soft); }
+  .trend.flat { color: var(--text-2); background: var(--panel-2); }
+  .trend.warn { color: var(--amber); background: var(--amber-soft); }
+
+  .spark { margin-top: 6px; height: 26px; width: 100%; display: block; }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-head h2 { font-size: 13px; font-weight: 620; letter-spacing: -0.1px; }
+  .card-head .sub { font-size: 11px; color: var(--text-3); }
+  .card-head .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  .tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .tag.green { background: var(--green-soft); color: var(--green); }
+  .tag.amber { background: var(--amber-soft); color: var(--amber); }
+  .tag.gray { background: var(--panel-2); color: var(--text-3); border: 1px solid var(--border); }
+
+  .link-btn {
+    font-size: 11.5px;
+    color: var(--text-3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 2px 4px;
+    border-radius: 5px;
+  }
+
+  .link-btn:hover { color: var(--accent); background: var(--accent-soft); }
+
+  /* Chat */
+  .chat { padding: 14px 16px 0; }
+
+  .chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    max-height: 216px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-log::-webkit-scrollbar { width: 6px; }
+  .chat-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+
+  .msg { display: flex; gap: 9px; align-items: flex-start; animation: rise 0.34s cubic-bezier(.22,.9,.3,1) both; }
+  .msg.me { flex-direction: row-reverse; }
+
+  .msg-ava {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: linear-gradient(135deg, #7c6bff, #22c9e0);
+    color: #fff;
+  }
+
+  .msg-ava svg { width: 14px; height: 14px; }
+
+  .msg.me .msg-ava {
+    background: linear-gradient(135deg, #8d97b8, #5d6a8f);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .bubble {
+    font-size: 12.5px;
+    line-height: 1.65;
+    padding: 9px 12px;
+    border-radius: 11px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    max-width: 84%;
+    color: var(--text);
+  }
+
+  .msg.me .bubble {
+    background: linear-gradient(135deg, #7c6bff, #5f5cf2);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .bubble b { font-weight: 650; }
+  .bubble .muted { color: var(--text-3); font-size: 11px; display: block; margin-top: 4px; }
+
+  .typing { display: flex; gap: 3px; padding: 12px; }
+  .typing i {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--text-3);
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing i:nth-child(2) { animation-delay: 0.16s; }
+  .typing i:nth-child(3) { animation-delay: 0.32s; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 13px 16px 0; }
+
+  .chip {
+    font-size: 11.5px;
+    color: var(--text-2);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 11px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.16s ease;
+  }
+
+  .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .composer {
+    margin: 12px 16px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    background: var(--panel-2);
+    padding: 9px 9px 9px 12px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .composer:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .composer textarea {
+    flex: 1;
+    border: none;
+    background: none;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text);
+    max-height: 96px;
+    padding: 4px 0;
+  }
+
+  .composer textarea::placeholder { color: var(--text-3); }
+
+  .send-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #7c6bff, #5b5bf0);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex: none;
+    transition: opacity 0.16s ease, transform 0.14s ease;
+  }
+
+  .send-btn:hover { transform: translateY(-1px); }
+  .send-btn svg { width: 15px; height: 15px; }
+
+  /* Workflows */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s ease;
+  }
+
+  .flow:last-child { border-bottom: none; }
+  .flow:hover { background: var(--panel-2); }
+
+  .flow-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .flow-icon svg { width: 15px; height: 15px; }
+  .flow-icon.g { background: var(--green-soft); color: var(--green); }
+  .flow-icon.a { background: var(--amber-soft); color: var(--amber); }
+
+  .flow-main { min-width: 0; flex: 1; }
+  .flow-name { font-size: 12.5px; font-weight: 560; display: flex; align-items: center; gap: 7px; }
+  .flow-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; display: flex; align-items: center; gap: 7px; }
+  .flow-meta i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+  .progress { width: 92px; flex: none; }
+  .progress-bar { height: 5px; border-radius: 6px; background: var(--border); overflow: hidden; }
+  .progress-bar i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #7c6bff, #22c9e0); transition: width 0.5s ease; }
+  .progress-num { font-size: 10px; color: var(--text-3); text-align: right; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* Files table */
+  .file-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 78px 84px 56px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s ease;
+    cursor: pointer;
+  }
+
+  .file-row:last-child { border-bottom: none; }
+  .file-row:hover { background: var(--panel-2); }
+
+  .file-row.head {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-3);
+    padding-top: 8px;
+    padding-bottom: 8px;
+    cursor: default;
+    background: transparent;
+    font-weight: 600;
+  }
+
+  .file-row.head:hover { background: transparent; }
+
+  .file-name { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .file-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 520; }
+
+  .ftype {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #fff;
+    flex: none;
+    letter-spacing: 0.2px;
+  }
+
+  .ftype.doc { background: #4f7dfb; }
+  .ftype.pdf { background: #e0526b; }
+  .ftype.xls { background: #12a97a; }
+  .ftype.fig { background: #a855f7; }
+
+  .muted-cell { color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+  /* Schedule */
+  .timeline { padding: 6px 16px 8px; }
+
+  .tl-item {
+    display: flex;
+    gap: 11px;
+    padding: 9px 0;
+    position: relative;
+  }
+
+  .tl-time {
+    font-size: 10.5px;
+    color: var(--text-3);
+    width: 38px;
+    flex: none;
+    padding-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tl-line { display: flex; flex-direction: column; align-items: center; flex: none; width: 8px; }
+
+  .tl-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 5px;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .tl-dot.g { background: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+  .tl-dot.a { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-soft); }
+  .tl-dot.gray { background: var(--text-3); box-shadow: 0 0 0 3px var(--border); }
+
+  .tl-conn { flex: 1; width: 1px; background: var(--border); margin: 4px 0 0; }
+
+  .tl-body { min-width: 0; padding-bottom: 2px; }
+  .tl-title { font-size: 12.5px; font-weight: 550; line-height: 1.45; }
+  .tl-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  .tl-item.now .tl-title { color: var(--accent); }
+  .tl-item.done .tl-title { color: var(--text-3); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  .now-pill {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 1px 6px;
+    border-radius: 20px;
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+
+  /* Todos */
+  .todo { display: flex; align-items: flex-start; gap: 9px; padding: 9px 16px; cursor: pointer; transition: background 0.15s ease; }
+  .todo:hover { background: var(--panel-2); }
+
+  .check {
+    width: 15px;
+    height: 15px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border-strong);
+    display: grid;
+    place-items: center;
+    flex: none;
+    margin-top: 2px;
+    transition: all 0.16s ease;
+    background: var(--panel);
+  }
+
+  .check svg { width: 9px; height: 9px; color: #fff; opacity: 0; transform: scale(0.5); transition: all 0.16s ease; }
+
+  .todo.done .check { background: linear-gradient(135deg, #7c6bff, #5b5bf0); border-color: transparent; }
+  .todo.done .check svg { opacity: 1; transform: scale(1); }
+
+  .todo-text { font-size: 12.5px; line-height: 1.5; flex: 1; }
+  .todo.done .todo-text { color: var(--text-3); text-decoration: line-through; }
+
+  .prio { font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 4px; flex: none; margin-top: 3px; }
+  .prio.p1 { color: var(--rose); background: rgba(224, 82, 107, 0.12); }
+  .prio.p2 { color: var(--amber); background: var(--amber-soft); }
+
+  .todo-foot {
+    padding: 10px 16px 13px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+
+  .todo-foot .progress { flex: 1; width: auto; }
+
+  /* Insight */
+  .insight {
+    background: linear-gradient(150deg, #5b53e8 0%, #7a5cf0 42%, #3f8bff 100%);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .insight::after {
+    content: "";
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    right: -70px;
+    top: -90px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 68%);
+    pointer-events: none;
+  }
+
+  .insight-label {
+    font-size: 10.5px;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    font-weight: 600;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .insight-label svg { width: 12px; height: 12px; }
+  .insight h3 { font-size: 14.5px; font-weight: 640; margin: 8px 0 6px; line-height: 1.45; }
+  .insight p { font-size: 12px; line-height: 1.65; opacity: 0.88; }
+  .insight-chart { margin: 12px 0 4px; display: block; width: 100%; height: 46px; }
+
+  .insight-cta {
+    margin-top: 10px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 560;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+    transition: background 0.16s ease;
+  }
+
+  .insight-cta:hover { background: rgba(255, 255, 255, 0.28); }
+  .insight-cta svg { width: 13px; height: 13px; }
+
+  /* Palette */
+  .palette-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(10, 12, 28, 0.42);
+    backdrop-filter: blur(3px);
+    display: grid;
+    place-items: start center;
+    padding-top: 15vh;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .palette-wrap.open { opacity: 1; pointer-events: auto; }
+
+  .palette {
+    width: 520px;
+    max-width: calc(100vw - 32px);
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    box-shadow: 0 30px 70px -24px rgba(8, 10, 30, 0.55);
+    overflow: hidden;
+    transform: translateY(-8px) scale(0.985);
+    transition: transform 0.2s cubic-bezier(.22,.9,.3,1);
+  }
+
+  .palette-wrap.open .palette { transform: none; }
+
+  .palette-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 15px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .palette-input svg { width: 16px; height: 16px; color: var(--text-3); flex: none; }
+
+  .palette-input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: none;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  .palette-input input::placeholder { color: var(--text-3); }
+
+  .palette-list { max-height: 300px; overflow-y: auto; padding: 6px; }
+
+  .p-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    cursor: pointer;
+    color: var(--text);
+  }
+
+  .p-item svg { width: 15px; height: 15px; color: var(--text-3); flex: none; }
+  .p-item .p-group { margin-left: auto; font-size: 10.5px; color: var(--text-3); }
+
+  .p-item:hover, .p-item.sel { background: var(--accent-soft); }
+  .p-item:hover svg, .p-item.sel svg { color: var(--accent); }
+
+  .palette-foot {
+    display: flex;
+    gap: 14px;
+    padding: 9px 15px;
+    border-top: 1px solid var(--border);
+    font-size: 10.5px;
+    color: var(--text-3);
+    background: var(--panel-2);
+  }
+
+  .palette-foot kbd {
+    font-family: inherit;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 4px;
+    background: var(--panel);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    transform: translate(-50%, 18px);
+    background: #14172e;
+    color: #fff;
+    font-size: 12.5px;
+    padding: 9px 15px;
+    border-radius: 10px;
+    box-shadow: 0 18px 40px -16px rgba(10, 12, 30, 0.7);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.24s cubic-bezier(.22,.9,.3,1);
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 80vw;
+  }
+
+  [data-theme="dark"] .toast { background: #edefff; color: #14172e; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast svg { width: 14px; height: 14px; color: #7ee0b8; flex: none; }
+  [data-theme="dark"] .toast svg { color: #12a97a; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
+  }
+
+  .fade-in { animation: rise 0.5s cubic-bezier(.22,.9,.3,1) both; }
+
+  /* ============ 视图容器 ============ */
+  .view { display: none; }
+  .view.active { display: block; animation: viewIn 0.3s cubic-bezier(.22,.9,.3,1) both; }
+
+  @keyframes viewIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .view-head {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .view-head h1 { font-size: 22px; font-weight: 680; letter-spacing: -0.6px; line-height: 1.3; }
+  .view-head p { font-size: 12.5px; color: var(--text-2); margin-top: 4px; }
+  .view-head .btn { margin-left: auto; flex: none; }
+
+  .chip.active-chip {
+    background: var(--accent);
+    border-color: transparent;
+    color: #fff;
+  }
+
+  /* ============ AI 对话页 ============ */
+  .chat-layout {
+    display: grid;
+    grid-template-columns: 262px minmax(0, 1fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .conv { display: flex; flex-direction: column; height: calc(100vh - 200px); min-height: 420px; }
+  .conv-list { flex: 1; overflow-y: auto; padding: 6px; }
+  .conv-list::-webkit-scrollbar { width: 6px; }
+  .conv-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+
+  .conv-item {
+    padding: 9px 10px;
+    border-radius: 9px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .conv-item:hover { background: var(--panel-2); }
+  .conv-item.active { background: var(--accent-soft); border-color: rgba(109, 94, 252, 0.22); }
+
+  .conv-title { font-size: 12.5px; font-weight: 560; display: flex; align-items: center; gap: 6px; }
+  .conv-title span { flex: none; }
+
+  .conv-snip {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .conv-time { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+
+  .chat-panel { display: flex; flex-direction: column; height: calc(100vh - 200px); min-height: 420px; }
+  .chat-page-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 13px; }
+  .chat-page-log::-webkit-scrollbar { width: 6px; }
+  .chat-page-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; }
+
+  /* ============ 知识库页 ============ */
+  .kb-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+  }
+
+  .kb-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+
+  .kb-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+
+  .kb-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+  }
+
+  .kb-icon svg { width: 16px; height: 16px; }
+  .kb-name { font-size: 13px; font-weight: 600; }
+  .kb-meta { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+  .kb-foot { display: flex; align-items: center; gap: 8px; margin-top: 11px; }
+  .kb-foot .progress { flex: 1; width: auto; }
+
+  .mini-input {
+    height: 30px;
+    width: 180px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    padding: 0 10px;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .mini-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .mini-input::placeholder { color: var(--text-3); }
+
+  /* ============ 任务看板 ============ */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+
+  .board-col {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .board-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .board-head .cnt {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-3);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1px 7px;
+  }
+
+  .board-head .bar { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+
+  .task-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 11px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  }
+
+  .task-card:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--border-strong); }
+  .task-card:last-child { margin-bottom: 0; }
+
+  .task-top { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .task-date { margin-left: auto; font-size: 10px; color: var(--text-3); }
+  .task-title { font-size: 12.5px; line-height: 1.5; font-weight: 520; }
+  .task-foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; font-size: 10.5px; color: var(--text-3); }
+
+  .avatar.sm { width: 18px; height: 18px; font-size: 9px; }
+
+  /* ============ 自动化页 ============ */
+  .switch {
+    width: 34px;
+    height: 19px;
+    border-radius: 20px;
+    background: var(--border-strong);
+    border: none;
+    position: relative;
+    cursor: pointer;
+    flex: none;
+    transition: background 0.2s ease;
+    padding: 0;
+  }
+
+  .switch i {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    transition: left 0.2s cubic-bezier(.22,.9,.3,1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  }
+
+  .switch.on { background: var(--accent); }
+  .switch.on i { left: 17px; }
+
+  .log-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) 96px 62px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .log-row:last-child { border-bottom: none; }
+  .log-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin: 0 auto; }
+  .log-dot.err { background: var(--rose); }
+  .log-time { color: var(--text-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+
+  /* ============ 团队页 ============ */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 13px;
+    margin-bottom: 14px;
+  }
+
+  .member {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .member .avatar { width: 34px; height: 34px; font-size: 13px; }
+  .member-name { font-size: 12.5px; font-weight: 600; }
+  .member-role { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+
+  .feed { padding: 4px 16px 10px; }
+
+  .feed-item { display: flex; gap: 9px; padding: 9px 0; border-bottom: 1px dashed var(--border); }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-body { font-size: 12px; line-height: 1.6; color: var(--text-2); }
+  .feed-body b { color: var(--text); font-weight: 600; }
+  .feed-time { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+
+  /* ============ 设置页 ============ */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .card-body { padding: 15px 16px; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { font-size: 11px; color: var(--text-2); font-weight: 550; }
+
+  .field input, .field select {
+    height: 34px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+    border-radius: 8px;
+    padding: 0 10px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .field input:focus, .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .profile-row { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+  .profile-row .avatar { width: 44px; height: 44px; font-size: 16px; border-radius: 13px; }
+  .profile-name { font-size: 13px; font-weight: 620; }
+  .profile-sub { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  .theme-opts { display: flex; gap: 10px; margin-bottom: 14px; }
+
+  .theme-opt {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    padding: 7px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text-2);
+    transition: all 0.16s ease;
+  }
+
+  .theme-opt:hover { border-color: var(--border-strong); }
+  .theme-opt.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .theme-prev {
+    height: 42px;
+    border-radius: 7px;
+    margin-bottom: 7px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #f4f5fa, #ffffff);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-prev::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 26%;
+    background: linear-gradient(180deg, #171a35, #0c0e1f);
+  }
+
+  .theme-prev.dark { background: linear-gradient(135deg, #12141f, #1a1d2e); }
+  .theme-prev.dark::before { background: linear-gradient(180deg, #171a35, #0c0e1f); }
+
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .set-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .set-text { flex: 1; min-width: 0; }
+  .set-name { font-size: 12.5px; font-weight: 520; }
+  .set-desc { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+  @media (max-width: 1180px) {
+    .kb-grid, .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .board { grid-template-columns: minmax(0, 1fr); }
+    .chat-layout { grid-template-columns: minmax(0, 1fr); }
+    .conv { display: none; }
+    .settings-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .grid { grid-template-columns: minmax(0, 1fr); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 880px) {
+    .app { grid-template-columns: 68px minmax(0, 1fr); }
+    .brand-text, .nav-label, .nav-item span, .nav-badge, .plan-card, .user-text { display: none; }
+    .sidebar { padding: 18px 10px 14px; align-items: center; }
+    .brand { padding: 4px 0 20px; }
+    .nav-item { justify-content: center; padding: 11px 0; }
+    .nav-item.active::before { left: -10px; }
+    .user { justify-content: center; }
+    .search { width: 44px; padding: 0; justify-content: center; }
+    .search span, .search kbd { display: none; }
+    .content { padding: 18px 16px 28px; }
+    .topbar { padding: 12px 16px; }
+    .hero { flex-wrap: wrap; }
+    .hero-actions { margin-left: 0; width: 100%; }
+    .file-row { grid-template-columns: minmax(0, 1fr) 74px; }
+    .file-row .hide-sm { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= Sidebar ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">Nova</div>
+        <div class="brand-sub">AI 个人工作台</div>
+      </div>
+    </div>
+
+    <div class="nav-label">工作区</div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-name="工作台">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.6"/><rect x="14" y="3" width="7" height="5" rx="1.6"/><rect x="14" y="12" width="7" height="9" rx="1.6"/><rect x="3" y="16" width="7" height="5" rx="1.6"/></svg>
+        <span>工作台</span>
+      </button>
+      <button class="nav-item" data-name="AI 对话">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>
+        <span>AI 对话</span>
+        <em class="nav-badge">6</em>
+      </button>
+      <button class="nav-item" data-name="知识库">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 0 4 18.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>
+        <span>知识库</span>
+      </button>
+      <button class="nav-item" data-name="任务">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10M9 12h10M9 19h10"/><path d="M4 5l1.4 1.4L7.6 4M4 12l1.4 1.4L7.6 11M4 19l1.4 1.4L7.6 18"/></svg>
+        <span>任务</span>
+        <em class="nav-badge">12</em>
+      </button>
+      <button class="nav-item" data-name="自动化">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>
+        <span>自动化</span>
+      </button>
+    </nav>
+
+    <div class="nav-label" style="margin-top:20px">其他</div>
+    <nav class="nav">
+      <button class="nav-item" data-name="团队空间">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16.5 5.5a3 3 0 0 1 0 5.6M18 20a5.6 5.6 0 0 0-2-4.3"/></svg>
+        <span>团队空间</span>
+      </button>
+      <button class="nav-item" data-name="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 2.5 14H2.3a2 2 0 1 1 0-4h.2A1.7 1.7 0 0 0 4.6 7a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 2.5V2.3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.1 2.9h.2a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>
+        <span>设置</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="plan-card">
+        <div class="plan-title">Nova Pro <span>68%</span></div>
+        <div class="plan-desc">本月剩余 1,240 次 AI 调用额度</div>
+        <div class="plan-bar"><i></i></div>
+      </div>
+      <div class="user">
+        <div class="avatar">海</div>
+        <div class="user-text">
+          <div class="user-name">海江</div>
+          <div class="user-mail">chenghaijiang@local</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= Main ================= -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">工作台</div>
+        <div class="page-date" id="pageDate">—</div>
+      </div>
+
+      <button class="search" id="searchBtn" aria-label="搜索">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span>搜索任务、文件、对话…</span>
+        <kbd>⌘K</kbd>
+      </button>
+
+      <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+
+      <button class="icon-btn" aria-label="通知" id="bellBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <i class="dot"></i>
+      </button>
+    </header>
+
+    <div class="content" id="content">
+
+      <!-- ================= 视图：工作台 ================= -->
+      <section class="view active" id="view-home">
+
+      <!-- Hero -->
+      <section class="hero fade-in">
+        <div>
+          <h1 id="greeting">晚上好，海江</h1>
+          <p>今天有 <b>5 项任务</b> 待处理，<b>2 个自动化流程</b> 已在早晨完成。</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-ghost" id="importBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg>
+            导入资料
+          </button>
+          <button class="btn btn-primary" id="newChatBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建对话
+          </button>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <section class="stats fade-in" style="animation-delay:.05s">
+        <article class="stat">
+          <div class="stat-top">
+            <span class="stat-label">待办任务</span>
+            <span class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10M9 12h10M9 19h10"/><path d="M4 5l1.4 1.4L7.6 4M4 12l1.4 1.4L7.6 11M4 19l1.4 1.4L7.6 18"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">12 <span class="trend up">+3 今日</span></div>
+          <svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none">
+            <defs><linearGradient id="s1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 20 L25 16 L50 18 L75 11 L100 14 L125 8 L150 12 L175 6 L200 9 V26 H0 Z" fill="url(#s1)"/>
+            <polyline points="0,20 25,16 50,18 75,11 100,14 125,8 150,12 175,6 200,9" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </article>
+
+        <article class="stat">
+          <div class="stat-top">
+            <span class="stat-label">进行中流程</span>
+            <span class="stat-icon g">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">3 <span class="trend flat">60% 完成</span></div>
+          <svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none">
+            <polyline points="0,14 25,17 50,10 75,15 100,9 125,13 150,7 175,11 200,8" fill="none" stroke="var(--green)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/>
+          </svg>
+        </article>
+
+        <article class="stat">
+          <div class="stat-top">
+            <span class="stat-label">AI 会话</span>
+            <span class="stat-icon c">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">28 <span class="trend up">本周 +9</span></div>
+          <svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none">
+            <defs><linearGradient id="s3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent-2)" stop-opacity=".26"/><stop offset="1" stop-color="var(--accent-2)" stop-opacity="0"/></linearGradient></defs>
+            <path d="M0 22 L25 18 L50 20 L75 14 L100 10 L125 13 L150 7 L175 9 L200 4 V26 H0 Z" fill="url(#s3)"/>
+            <polyline points="0,22 25,18 50,20 75,14 100,10 125,13 150,7 175,9 200,4" fill="none" stroke="var(--accent-2)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </article>
+
+        <article class="stat">
+          <div class="stat-top">
+            <span class="stat-label">知识条目</span>
+            <span class="stat-icon a">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 0 4 18.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>
+            </span>
+          </div>
+          <div class="stat-value">1,482 <span class="trend up">+126</span></div>
+          <svg class="spark" viewBox="0 0 200 26" preserveAspectRatio="none">
+            <polyline points="0,18 25,19 50,13 75,16 100,11 125,12 150,6 175,10 200,5" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>
+          </svg>
+        </article>
+      </section>
+
+      <!-- Main grid -->
+      <div class="grid fade-in" style="animation-delay:.1s">
+        <!-- Left column -->
+        <div class="col">
+          <!-- Chat -->
+          <section class="card">
+            <div class="card-head">
+              <div class="brand-mark" style="width:24px;height:24px;border-radius:8px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+              </div>
+              <h2>AI 助手</h2>
+              <span class="tag">Nova-3.5</span>
+              <div class="right">
+                <button class="link-btn" id="clearChat">清空</button>
+              </div>
+            </div>
+
+            <div class="chat">
+              <div class="chat-log" id="chatLog">
+                <div class="msg">
+                  <div class="msg-ava">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+                  </div>
+                  <div class="bubble">
+                    早上好，海江。我已经整理好昨天的会议纪要，并把 3 份待归档的资料放进了「项目 A / 周会」目录。
+                    <span class="muted">09:02 · 已完成 4 项后台任务</span>
+                  </div>
+                </div>
+                <div class="msg me">
+                  <div class="msg-ava">海</div>
+                  <div class="bubble">帮我看看本周还有哪些延期风险？</div>
+                </div>
+                <div class="msg">
+                  <div class="msg-ava">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+                  </div>
+                  <div class="bubble">
+                    发现 <b>2 项延期风险</b>：<br>
+                    1. 「品牌视觉改版」依赖设计稿终稿，目前滞后 1 天；<br>
+                    2. 「数据看板 v2」接口联调未开始，排期已无缓冲。<br>
+                    <span class="muted">建议今天 16:00 前同步一次进度 · 点击可生成跟进任务</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="chips" id="chips">
+              <button class="chip">总结今天的会议纪要</button>
+              <button class="chip">生成周报初稿</button>
+              <button class="chip">列出本周延期风险</button>
+              <button class="chip">把这份 PDF 转成要点</button>
+            </div>
+
+            <div class="composer">
+              <textarea id="input" rows="1" placeholder="向 Nova 提问，或按 ⌘↵ 发送…"></textarea>
+              <button class="send-btn" id="sendBtn" aria-label="发送">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </section>
+
+          <!-- Workflows -->
+          <section class="card">
+            <div class="card-head">
+              <h2>自动化流程</h2>
+              <span class="tag gray">3 运行中</span>
+              <div class="right"><button class="link-btn" data-toast="流程编排器仅演示版">管理流程</button></div>
+            </div>
+
+            <div class="flow">
+              <div class="flow-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/></svg>
+              </div>
+              <div class="flow-main">
+                <div class="flow-name">每日资讯聚合 <span class="tag green">运行中</span></div>
+                <div class="flow-meta">每天 08:00 <i></i> RSS + 邮件 <i></i> 输出飞书摘要</div>
+              </div>
+              <div class="progress">
+                <div class="progress-bar"><i style="width:82%"></i></div>
+                <div class="progress-num">82%</div>
+              </div>
+            </div>
+
+            <div class="flow">
+              <div class="flow-icon a">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h4l2 10h10"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M17 7h4"/></svg>
+              </div>
+              <div class="flow-main">
+                <div class="flow-name">会议纪要归档 <span class="tag amber">等待审批</span></div>
+                <div class="flow-meta">会议结束触发 <i></i> 转录 → 摘要 → 知识库</div>
+              </div>
+              <div class="progress">
+                <div class="progress-bar"><i style="width:46%"></i></div>
+                <div class="progress-num">46%</div>
+              </div>
+            </div>
+
+            <div class="flow">
+              <div class="flow-icon g">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
+              </div>
+              <div class="flow-main">
+                <div class="flow-name">周报自动生成 <span class="tag green">运行中</span></div>
+                <div class="flow-meta">每周五 18:00 <i></i> 任务 + 文档 → 周报</div>
+              </div>
+              <div class="progress">
+                <div class="progress-bar"><i style="width:64%"></i></div>
+                <div class="progress-num">64%</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Files -->
+          <section class="card">
+            <div class="card-head">
+              <h2>最近文件</h2>
+              <div class="right"><button class="link-btn" data-toast="打开完整文件列表（演示）">查看全部</button></div>
+            </div>
+            <div class="file-row head">
+              <span>名称</span><span class="hide-sm">类型</span><span class="hide-sm">更新时间</span><span>大小</span>
+            </div>
+            <div class="file-row" data-toast="打开 产品需求文档_v3.docx">
+              <div class="file-name"><span class="ftype doc">DOC</span><span>产品需求文档_v3.docx</span></div>
+              <span class="muted-cell hide-sm">文档</span>
+              <span class="muted-cell hide-sm">12 分钟前</span>
+              <span class="muted-cell">2.4 MB</span>
+            </div>
+            <div class="file-row" data-toast="打开 2026Q4 预算表.xlsx">
+              <div class="file-name"><span class="ftype xls">XLS</span><span>2026Q4 预算表.xlsx</span></div>
+              <span class="muted-cell hide-sm">表格</span>
+              <span class="muted-cell hide-sm">1 小时前</span>
+              <span class="muted-cell">860 KB</span>
+            </div>
+            <div class="file-row" data-toast="打开 竞品调研报告.pdf">
+              <div class="file-name"><span class="ftype pdf">PDF</span><span>竞品调研报告.pdf</span></div>
+              <span class="muted-cell hide-sm">PDF</span>
+              <span class="muted-cell hide-sm">昨天 19:24</span>
+              <span class="muted-cell">6.1 MB</span>
+            </div>
+            <div class="file-row" data-toast="打开 首页改版原型.fig">
+              <div class="file-name"><span class="ftype fig">FIG</span><span>首页改版原型.fig</span></div>
+              <span class="muted-cell hide-sm">设计稿</span>
+              <span class="muted-cell hide-sm">昨天 16:08</span>
+              <span class="muted-cell">18.7 MB</span>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right column -->
+        <div class="col">
+          <section class="card">
+            <div class="card-head">
+              <h2>今日日程</h2>
+              <span class="sub">11 月 6 日</span>
+              <div class="right"><button class="link-btn" data-toast="打开日历（演示）">日历</button></div>
+            </div>
+            <div class="timeline">
+              <div class="tl-item done">
+                <span class="tl-time">09:30</span>
+                <div class="tl-line"><span class="tl-dot gray"></span><span class="tl-conn"></span></div>
+                <div class="tl-body">
+                  <div class="tl-title">设计评审 · 首页改版</div>
+                  <div class="tl-sub">已结束 · 会议室 A</div>
+                </div>
+              </div>
+              <div class="tl-item done">
+                <span class="tl-time">11:00</span>
+                <div class="tl-line"><span class="tl-dot gray"></span><span class="tl-conn"></span></div>
+                <div class="tl-body">
+                  <div class="tl-title">与供应商对齐交付排期</div>
+                  <div class="tl-sub">已结束 · 线上</div>
+                </div>
+              </div>
+              <div class="tl-item now">
+                <span class="tl-time">19:30</span>
+                <div class="tl-line"><span class="tl-dot"></span><span class="tl-conn"></span></div>
+                <div class="tl-body">
+                  <div class="tl-title">项目周会<span class="now-pill">即将开始</span></div>
+                  <div class="tl-sub">20 分钟后 · 3 位参与者</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <span class="tl-time">21:00</span>
+                <div class="tl-line"><span class="tl-dot a"></span></div>
+                <div class="tl-body">
+                  <div class="tl-title">复盘本周延期风险</div>
+                  <div class="tl-sub">个人专注时段 · 45 分钟</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>待办清单</h2>
+              <span class="tag gray" id="todoCount">0 / 5</span>
+              <div class="right"><button class="link-btn" id="addTodo">+ 新增</button></div>
+            </div>
+            <div id="todoList">
+              <div class="todo" data-prio="p1">
+                <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+                <span class="todo-text">确认品牌视觉终稿交付时间</span>
+                <span class="prio p1">P1</span>
+              </div>
+              <div class="todo" data-prio="p1">
+                <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+                <span class="todo-text">推动数据看板接口联调排期</span>
+                <span class="prio p1">P1</span>
+              </div>
+              <div class="todo done" data-prio="p2">
+                <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+                <span class="todo-text">整理昨日会议纪要并归档</span>
+                <span class="prio p2">P2</span>
+              </div>
+              <div class="todo" data-prio="p2">
+                <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+                <span class="todo-text">审阅 Q4 预算表差异项</span>
+                <span class="prio p2">P2</span>
+              </div>
+              <div class="todo" data-prio="p2">
+                <span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+                <span class="todo-text">准备周会三个关键结论</span>
+                <span class="prio p2">P2</span>
+              </div>
+            </div>
+            <div class="todo-foot">
+              <span>完成进度</span>
+              <div class="progress">
+                <div class="progress-bar"><i id="todoBar" style="width:20%"></i></div>
+              </div>
+              <span id="todoPct">20%</span>
+            </div>
+          </section>
+
+          <section class="card insight">
+            <div class="insight-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+              AI 洞察
+            </div>
+            <h3>本周你的专注时段集中在 21:00–23:00</h3>
+            <p>相比上周延后了约 40 分钟。建议把「深度任务」排在此区间，会议尽量前置。</p>
+            <svg class="insight-chart" viewBox="0 0 260 46" preserveAspectRatio="none">
+              <polyline points="0,38 26,34 52,30 78,33 104,24 130,26 156,16 182,20 208,10 234,13 260,6"
+                fill="none" stroke="rgba(255,255,255,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="0,42 26,40 52,41 78,37 104,39 130,34 156,36 182,30 208,33 234,27 260,28"
+                fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-dasharray="3 3" stroke-linecap="round"/>
+            </svg>
+            <button class="insight-cta" data-toast="已生成「夜间专注」日程建议">
+              应用建议
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </button>
+          </section>
+        </div>
+      </div>
+      </section>
+
+      <!-- ================= 视图：AI 对话 ================= -->
+      <section class="view" id="view-chat">
+        <div class="view-head">
+          <div>
+            <h1>AI 对话</h1>
+            <p>共 28 段会话 · 已接入「项目 A」「个人笔记」2 个知识空间</p>
+          </div>
+          <button class="btn btn-primary" id="chatNewBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建对话
+          </button>
+        </div>
+
+        <div class="chat-layout">
+          <aside class="card conv">
+            <div class="card-head">
+              <h2>会话列表</h2>
+              <span class="tag gray">28</span>
+            </div>
+            <div class="conv-list" id="convList">
+              <div class="conv-item active">
+                <div class="conv-title">本周延期风险分析 <span class="tag amber">进行中</span></div>
+                <div class="conv-snip">发现 2 项延期风险，建议今天 16:00 前…</div>
+                <div class="conv-time">刚刚</div>
+              </div>
+              <div class="conv-item">
+                <div class="conv-title">Q4 预算表差异核对</div>
+                <div class="conv-snip">差异集中在市场费用与外包成本两栏…</div>
+                <div class="conv-time">今天 15:42</div>
+              </div>
+              <div class="conv-item">
+                <div class="conv-title">竞品调研报告要点</div>
+                <div class="conv-snip">共 24 页，提取 11 条要点与 3 张图表…</div>
+                <div class="conv-time">今天 11:08</div>
+              </div>
+              <div class="conv-item">
+                <div class="conv-title">周会发言提纲</div>
+                <div class="conv-snip">按「进展 / 风险 / 下周计划」三段式…</div>
+                <div class="conv-time">昨天 21:30</div>
+              </div>
+              <div class="conv-item">
+                <div class="conv-title">首页改版信息架构建议</div>
+                <div class="conv-snip">建议把高频入口前置到首屏第二区…</div>
+                <div class="conv-time">昨天 17:02</div>
+              </div>
+              <div class="conv-item">
+                <div class="conv-title">供应商合同条款比对</div>
+                <div class="conv-snip">付款周期与违约条款存在 3 处差异…</div>
+                <div class="conv-time">11 月 4 日</div>
+              </div>
+            </div>
+          </aside>
+
+          <section class="card chat-panel">
+            <div class="card-head">
+              <h2 id="chatPageTitle">本周延期风险分析</h2>
+              <span class="tag">Nova-3.5</span>
+              <div class="right">
+                <span class="sub">上下文 12.4k / 32k</span>
+                <button class="link-btn" data-toast="已导出为 Markdown（演示）">导出</button>
+              </div>
+            </div>
+
+            <div class="chat-page-log" id="chatLog2">
+              <div class="msg">
+                <div class="msg-ava">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+                </div>
+                <div class="bubble">
+                  早上好，海江。我已经整理好昨天的会议纪要，并把 3 份待归档的资料放进了「项目 A / 周会」目录。
+                  <span class="muted">09:02 · 已完成 4 项后台任务</span>
+                </div>
+              </div>
+              <div class="msg me">
+                <div class="msg-ava">海</div>
+                <div class="bubble">帮我看看本周还有哪些延期风险？</div>
+              </div>
+              <div class="msg">
+                <div class="msg-ava">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg>
+                </div>
+                <div class="bubble">
+                  发现 <b>2 项延期风险</b>：<br>
+                  1. 「品牌视觉改版」依赖设计稿终稿，目前滞后 1 天；<br>
+                  2. 「数据看板 v2」接口联调未开始，排期已无缓冲。<br>
+                  <span class="muted">建议今天 16:00 前同步一次进度 · 点击可生成跟进任务</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="chips" id="chips2">
+              <button class="chip">把这两项风险拆成任务</button>
+              <button class="chip">生成给设计组的催办消息</button>
+              <button class="chip">对比上周风险项</button>
+            </div>
+
+            <div class="composer">
+              <textarea id="input2" rows="1" placeholder="继续追问，⌘↵ 发送…"></textarea>
+              <button class="send-btn" id="sendBtn2" aria-label="发送">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ================= 视图：知识库 ================= -->
+      <section class="view" id="view-kb">
+        <div class="view-head">
+          <div>
+            <h1>知识库</h1>
+            <p>1,482 条条目 · 4 个空间 · 最近 7 天新增 126 条</p>
+          </div>
+          <button class="btn btn-primary" data-toast="上传资料（演示）">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg>
+            上传资料
+          </button>
+        </div>
+
+        <div class="kb-grid">
+          <article class="kb-card" data-toast="打开空间：项目 A">
+            <div class="kb-icon" style="background:var(--accent-soft);color:var(--accent)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2.5h6.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>
+            </div>
+            <div class="kb-name">项目 A</div>
+            <div class="kb-meta">642 条 · 更新于 12 分钟前</div>
+            <div class="kb-foot">
+              <div class="progress"><div class="progress-bar"><i style="width:86%"></i></div></div>
+              <span class="tag green">已索引</span>
+            </div>
+          </article>
+
+          <article class="kb-card" data-toast="打开空间：产品资料">
+            <div class="kb-icon" style="background:rgba(22,182,207,.12);color:var(--accent-2)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 0 4 18.5z"/><path d="M4 18.5A2.5 2.5 0 0 1 6.5 16H19"/></svg>
+            </div>
+            <div class="kb-name">产品资料</div>
+            <div class="kb-meta">418 条 · 更新于 2 小时前</div>
+            <div class="kb-foot">
+              <div class="progress"><div class="progress-bar"><i style="width:72%"></i></div></div>
+              <span class="tag green">已索引</span>
+            </div>
+          </article>
+
+          <article class="kb-card" data-toast="打开空间：会议纪要">
+            <div class="kb-icon" style="background:var(--green-soft);color:var(--green)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+            </div>
+            <div class="kb-name">会议纪要</div>
+            <div class="kb-meta">296 条 · 更新于 昨天</div>
+            <div class="kb-foot">
+              <div class="progress"><div class="progress-bar"><i style="width:94%"></i></div></div>
+              <span class="tag green">已索引</span>
+            </div>
+          </article>
+
+          <article class="kb-card" data-toast="打开空间：个人笔记">
+            <div class="kb-icon" style="background:var(--amber-soft);color:var(--amber)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>
+            </div>
+            <div class="kb-name">个人笔记</div>
+            <div class="kb-meta">126 条 · 更新于 3 天前</div>
+            <div class="kb-foot">
+              <div class="progress"><div class="progress-bar"><i style="width:48%"></i></div></div>
+              <span class="tag amber">索引中</span>
+            </div>
+          </article>
+        </div>
+
+        <section class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h2>全部条目</h2>
+            <span class="tag gray" id="kbCount">6 条</span>
+            <div class="right">
+              <input class="mini-input" id="kbSearch" placeholder="筛选条目…" />
+            </div>
+          </div>
+          <div class="file-row head">
+            <span>名称</span><span class="hide-sm">空间</span><span class="hide-sm">更新时间</span><span>状态</span>
+          </div>
+          <div id="kbRows">
+            <div class="file-row" data-toast="打开 产品需求文档_v3.docx">
+              <div class="file-name"><span class="ftype doc">DOC</span><span>产品需求文档_v3.docx</span></div>
+              <span class="muted-cell hide-sm">项目 A</span>
+              <span class="muted-cell hide-sm">12 分钟前</span>
+              <span><em class="tag green">已索引</em></span>
+            </div>
+            <div class="file-row" data-toast="打开 竞品调研报告.pdf">
+              <div class="file-name"><span class="ftype pdf">PDF</span><span>竞品调研报告.pdf</span></div>
+              <span class="muted-cell hide-sm">产品资料</span>
+              <span class="muted-cell hide-sm">昨天 19:24</span>
+              <span><em class="tag green">已索引</em></span>
+            </div>
+            <div class="file-row" data-toast="打开 2026Q4 预算表.xlsx">
+              <div class="file-name"><span class="ftype xls">XLS</span><span>2026Q4 预算表.xlsx</span></div>
+              <span class="muted-cell hide-sm">项目 A</span>
+              <span class="muted-cell hide-sm">1 小时前</span>
+              <span><em class="tag green">已索引</em></span>
+            </div>
+            <div class="file-row" data-toast="打开 周会纪要 1105.md">
+              <div class="file-name"><span class="ftype doc">MD</span><span>周会纪要_1105.md</span></div>
+              <span class="muted-cell hide-sm">会议纪要</span>
+              <span class="muted-cell hide-sm">昨天 18:40</span>
+              <span><em class="tag green">已索引</em></span>
+            </div>
+            <div class="file-row" data-toast="打开 首页改版原型.fig">
+              <div class="file-name"><span class="ftype fig">FIG</span><span>首页改版原型.fig</span></div>
+              <span class="muted-cell hide-sm">产品资料</span>
+              <span class="muted-cell hide-sm">昨天 16:08</span>
+              <span><em class="tag amber">解析中</em></span>
+            </div>
+            <div class="file-row" data-toast="打开 灵感速记.md">
+              <div class="file-name"><span class="ftype doc">MD</span><span>灵感速记.md</span></div>
+              <span class="muted-cell hide-sm">个人笔记</span>
+              <span class="muted-cell hide-sm">3 天前</span>
+              <span><em class="tag gray">待确认</em></span>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ================= 视图：任务 ================= -->
+      <section class="view" id="view-tasks">
+        <div class="view-head">
+          <div>
+            <h1>任务</h1>
+            <p>本周 12 项任务 · 4 项已完成 · 2 项存在逾期风险</p>
+          </div>
+          <button class="btn btn-primary" id="taskNewBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建任务
+          </button>
+        </div>
+
+        <div class="chips" id="taskFilter" style="padding:0 0 13px">
+          <button class="chip active-chip" data-filter="all">全部 12</button>
+          <button class="chip" data-filter="p1">高优 4</button>
+          <button class="chip" data-filter="late">逾期风险 2</button>
+        </div>
+
+        <div class="board">
+          <div class="board-col">
+            <div class="board-head"><span class="bar" style="background:var(--text-3)"></span>待处理 <span class="cnt">5</span></div>
+
+            <div class="task-card" data-prio="p1" data-late="1" data-toast="打开任务：确认品牌视觉终稿交付时间">
+              <div class="task-top"><span class="prio p1">P1</span><span class="task-date">今天 18:00</span></div>
+              <div class="task-title">确认品牌视觉终稿交付时间</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#f0a93a,#e0782a)">设</span>设计组<span style="margin-left:auto">滞后 1 天</span></div>
+            </div>
+
+            <div class="task-card" data-prio="p1" data-late="1" data-toast="打开任务：推动数据看板接口联调排期">
+              <div class="task-top"><span class="prio p1">P1</span><span class="task-date">明天</span></div>
+              <div class="task-title">推动数据看板 v2 接口联调排期</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#4f7dfb,#3b5fd0)">研</span>研发组<span style="margin-left:auto">无缓冲</span></div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：审阅 Q4 预算表差异项">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">周三</span></div>
+              <div class="task-title">审阅 Q4 预算表差异项</div>
+              <div class="task-foot"><span class="avatar sm">海</span>我自己</div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：准备周会三个关键结论">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">今天 19:30</span></div>
+              <div class="task-title">准备周会三个关键结论</div>
+              <div class="task-foot"><span class="avatar sm">海</span>我自己</div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：整理竞品定价对比">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">周五</span></div>
+              <div class="task-title">整理竞品定价对比</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">运</span>运营组</div>
+            </div>
+          </div>
+
+          <div class="board-col">
+            <div class="board-head"><span class="bar" style="background:var(--accent)"></span>进行中 <span class="cnt">3</span></div>
+
+            <div class="task-card" data-prio="p1" data-toast="打开任务：首页改版方案评审">
+              <div class="task-top"><span class="prio p1">P1</span><span class="task-date">今天 16:00</span></div>
+              <div class="task-title">首页改版方案评审</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#12a97a,#0d8a63)">产</span>产品组<span style="margin-left:auto">60%</span></div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：自动化流程接入飞书">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">周四</span></div>
+              <div class="task-title">自动化流程接入飞书通知</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#4f7dfb,#3b5fd0)">研</span>研发组<span style="margin-left:auto">45%</span></div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：知识库条目去重">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">本周</span></div>
+              <div class="task-title">知识库重复条目清洗</div>
+              <div class="task-foot"><span class="avatar sm">海</span>我自己<span style="margin-left:auto">72%</span></div>
+            </div>
+          </div>
+
+          <div class="board-col">
+            <div class="board-head"><span class="bar" style="background:var(--green)"></span>已完成 <span class="cnt">4</span></div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：整理昨日会议纪要">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">昨天</span></div>
+              <div class="task-title" style="text-decoration:line-through;color:var(--text-3)">整理昨日会议纪要并归档</div>
+              <div class="task-foot"><span class="avatar sm">海</span>我自己</div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：客户回访">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">11 月 5 日</span></div>
+              <div class="task-title" style="text-decoration:line-through;color:var(--text-3)">完成 3 家客户回访记录</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">运</span>运营组</div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：周报模板确认">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">11 月 4 日</span></div>
+              <div class="task-title" style="text-decoration:line-through;color:var(--text-3)">确认周报模板结构</div>
+              <div class="task-foot"><span class="avatar sm">海</span>我自己</div>
+            </div>
+
+            <div class="task-card" data-prio="p2" data-toast="打开任务：接口文档补齐">
+              <div class="task-top"><span class="prio p2">P2</span><span class="task-date">11 月 3 日</span></div>
+              <div class="task-title" style="text-decoration:line-through;color:var(--text-3)">补齐看板接口文档</div>
+              <div class="task-foot"><span class="avatar sm" style="background:linear-gradient(135deg,#4f7dfb,#3b5fd0)">研</span>研发组</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 视图：自动化 ================= -->
+      <section class="view" id="view-auto">
+        <div class="view-head">
+          <div>
+            <h1>自动化</h1>
+            <p>本月运行 128 次 · 成功率 96.4% · 累计为你节省约 6.2 小时</p>
+          </div>
+          <button class="btn btn-primary" data-toast="流程编排器（演示）">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新建流程
+          </button>
+        </div>
+
+        <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:14px">
+          <article class="stat">
+            <div class="stat-top"><span class="stat-label">本月运行</span>
+              <span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg></span>
+            </div>
+            <div class="stat-value">128 <span class="trend up">+12%</span></div>
+          </article>
+          <article class="stat">
+            <div class="stat-top"><span class="stat-label">成功率</span>
+              <span class="stat-icon g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span>
+            </div>
+            <div class="stat-value">96.4% <span class="trend up">稳定</span></div>
+          </article>
+          <article class="stat">
+            <div class="stat-top"><span class="stat-label">节省工时</span>
+              <span class="stat-icon a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.9"/></svg></span>
+            </div>
+            <div class="stat-value">6.2 <span class="trend flat">小时</span></div>
+          </article>
+        </div>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>我的流程</h2>
+            <span class="tag green">3 个启用</span>
+            <div class="right"><button class="link-btn" data-toast="查看全部流程（演示）">全部</button></div>
+          </div>
+
+          <div class="flow">
+            <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/></svg></div>
+            <div class="flow-main">
+              <div class="flow-name">每日资讯聚合</div>
+              <div class="flow-meta">每天 08:00 <i></i> RSS + 邮件 <i></i> 输出飞书摘要 <i></i> 最近运行 08:00 成功</div>
+            </div>
+            <button class="switch on" aria-label="启用每日资讯聚合"><i></i></button>
+          </div>
+
+          <div class="flow">
+            <div class="flow-icon a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+            <div class="flow-main">
+              <div class="flow-name">会议纪要归档</div>
+              <div class="flow-meta">会议结束触发 <i></i> 转录 → 摘要 → 知识库 <i></i> 等待你审批 1 次</div>
+            </div>
+            <button class="switch on" aria-label="启用会议纪要归档"><i></i></button>
+          </div>
+
+          <div class="flow">
+            <div class="flow-icon g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg></div>
+            <div class="flow-main">
+              <div class="flow-name">周报自动生成</div>
+              <div class="flow-meta">每周五 18:00 <i></i> 任务 + 文档 → 周报 <i></i> 最近运行 18:00 成功</div>
+            </div>
+            <button class="switch on" aria-label="启用周报自动生成"><i></i></button>
+          </div>
+
+          <div class="flow">
+            <div class="flow-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+            <div class="flow-main">
+              <div class="flow-name">发票识别入账</div>
+              <div class="flow-meta">邮箱附件触发 <i></i> OCR → 预算表 <i></i> 已暂停</div>
+            </div>
+            <button class="switch" aria-label="启用发票识别入账"><i></i></button>
+          </div>
+        </section>
+
+        <section class="card" style="margin-top:14px">
+          <div class="card-head">
+            <h2>运行日志</h2>
+            <div class="right"><button class="link-btn" data-toast="导出日志（演示）">导出</button></div>
+          </div>
+          <div class="log-row"><span class="log-dot"></span><span>每日资讯聚合 · 生成 12 条摘要</span><span class="log-time">今天 08:00</span><span><em class="tag green">成功</em></span></div>
+          <div class="log-row"><span class="log-dot"></span><span>周报自动生成 · 已生成初稿</span><span class="log-time">昨天 18:00</span><span><em class="tag green">成功</em></span></div>
+          <div class="log-row"><span class="log-dot err"></span><span>发票识别入账 · 附件格式不支持</span><span class="log-time">昨天 14:22</span><span><em class="tag amber">重试 1</em></span></div>
+          <div class="log-row"><span class="log-dot"></span><span>会议纪要归档 · 3 份资料已入库</span><span class="log-time">昨天 11:05</span><span><em class="tag green">成功</em></span></div>
+          <div class="log-row"><span class="log-dot"></span><span>每日资讯聚合 · 生成 9 条摘要</span><span class="log-time">11 月 4 日 08:00</span><span><em class="tag green">成功</em></span></div>
+        </section>
+      </section>
+
+      <!-- ================= 视图：团队空间 ================= -->
+      <section class="view" id="view-team">
+        <div class="view-head">
+          <div>
+            <h1>团队空间</h1>
+            <p>4 位成员 · 共享文档 32 份 · 本周协作 18 次</p>
+          </div>
+          <button class="btn btn-primary" data-toast="已复制邀请链接（演示）">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3.5"/><path d="M19 8v6M22 11h-6"/></svg>
+            邀请成员
+          </button>
+        </div>
+
+        <div class="team-grid">
+          <div class="member" data-toast="查看 海江 的资料">
+            <div class="avatar">海</div>
+            <div><div class="member-name">海江</div><div class="member-role">负责人 · 在线</div></div>
+          </div>
+          <div class="member" data-toast="查看 林清 的资料">
+            <div class="avatar" style="background:linear-gradient(135deg,#f0a93a,#e0782a)">林</div>
+            <div><div class="member-name">林清</div><div class="member-role">设计 · 在线</div></div>
+          </div>
+          <div class="member" data-toast="查看 周牧 的资料">
+            <div class="avatar" style="background:linear-gradient(135deg,#4f7dfb,#3b5fd0)">周</div>
+            <div><div class="member-name">周牧</div><div class="member-role">研发 · 30 分钟前</div></div>
+          </div>
+          <div class="member" data-toast="查看 苏禾 的资料">
+            <div class="avatar" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">苏</div>
+            <div><div class="member-name">苏禾</div><div class="member-role">运营 · 昨天</div></div>
+          </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
+          <section class="card">
+            <div class="card-head"><h2>共享文档</h2><div class="right"><button class="link-btn" data-toast="打开全部共享文档（演示）">查看全部</button></div></div>
+            <div class="file-row" data-toast="打开 产品需求文档_v3.docx">
+              <div class="file-name"><span class="ftype doc">DOC</span><span>产品需求文档_v3.docx</span></div>
+              <span class="muted-cell hide-sm">林清 编辑</span>
+              <span class="muted-cell">12 分钟前</span>
+            </div>
+            <div class="file-row" data-toast="打开 2026Q4 预算表.xlsx">
+              <div class="file-name"><span class="ftype xls">XLS</span><span>2026Q4 预算表.xlsx</span></div>
+              <span class="muted-cell hide-sm">苏禾 编辑</span>
+              <span class="muted-cell">1 小时前</span>
+            </div>
+            <div class="file-row" data-toast="打开 接口文档.md">
+              <div class="file-name"><span class="ftype doc">MD</span><span>数据看板接口文档.md</span></div>
+              <span class="muted-cell hide-sm">周牧 编辑</span>
+              <span class="muted-cell">昨天 17:40</span>
+            </div>
+            <div class="file-row" data-toast="打开 周会纪要 1105.md">
+              <div class="file-name"><span class="ftype doc">MD</span><span>周会纪要_1105.md</span></div>
+              <span class="muted-cell hide-sm">海江 编辑</span>
+              <span class="muted-cell">昨天 18:40</span>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><h2>协作动态</h2></div>
+            <div class="feed">
+              <div class="feed-item"><div class="avatar sm" style="background:linear-gradient(135deg,#f0a93a,#e0782a)">林</div><div><div class="feed-body"><b>林清</b> 更新了「首页改版原型」，新增 6 个画板</div><div class="feed-time">12 分钟前</div></div></div>
+              <div class="feed-item"><div class="avatar sm" style="background:linear-gradient(135deg,#4f7dfb,#3b5fd0)">周</div><div><div class="feed-body"><b>周牧</b> 在「数据看板 v2」中标记了 2 个阻塞项</div><div class="feed-time">1 小时前</div></div></div>
+              <div class="feed-item"><div class="avatar sm">海</div><div><div class="feed-body">你分享了 <b>竞品调研报告</b> 给团队</div><div class="feed-time">昨天 19:24</div></div></div>
+              <div class="feed-item"><div class="avatar sm" style="background:linear-gradient(135deg,#a855f7,#7c3aed)">苏</div><div><div class="feed-body"><b>苏禾</b> 完成了「Q4 预算表」第一轮校对</div><div class="feed-time">昨天 16:02</div></div></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ================= 视图：设置 ================= -->
+      <section class="view" id="view-settings">
+        <div class="view-head">
+          <div>
+            <h1>设置</h1>
+            <p>账号资料、外观偏好与模型配置</p>
+          </div>
+          <button class="btn btn-primary" data-toast="设置已保存（演示）">保存更改</button>
+        </div>
+
+        <div class="settings-grid">
+          <section class="card">
+            <div class="card-head"><h2>账号资料</h2></div>
+            <div class="card-body">
+              <div class="profile-row">
+                <div class="avatar">海</div>
+                <div>
+                  <div class="profile-name">海江</div>
+                  <div class="profile-sub">Nova Pro · 2026 年 3 月加入</div>
+                </div>
+                <button class="link-btn" style="margin-left:auto" data-toast="更换头像（演示）">更换头像</button>
+              </div>
+              <div class="field"><label for="setName">昵称</label><input id="setName" value="海江" /></div>
+              <div class="field"><label for="setMail">邮箱</label><input id="setMail" value="chenghaijiang@local" /></div>
+              <div class="field"><label for="setZone">时区</label>
+                <select id="setZone">
+                  <option>(GMT+8) 北京 · 上海</option>
+                  <option>(GMT+9) 东京</option>
+                  <option>(GMT+0) 伦敦</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><h2>外观</h2></div>
+            <div class="card-body">
+              <div class="theme-opts" id="themeOpts">
+                <div class="theme-opt active" data-theme-val="light">
+                  <div class="theme-prev"></div>
+                  浅色
+                </div>
+                <div class="theme-opt" data-theme-val="dark">
+                  <div class="theme-prev dark"></div>
+                  深色
+                </div>
+              </div>
+              <div class="field"><label for="setDensity">界面密度</label>
+                <select id="setDensity">
+                  <option>舒适（默认）</option>
+                  <option>紧凑</option>
+                </select>
+              </div>
+              <div class="set-row">
+                <div class="set-text">
+                  <div class="set-name">减弱动态效果</div>
+                  <div class="set-desc">关闭入场动画与过渡</div>
+                </div>
+                <button class="switch" aria-label="减弱动态效果"><i></i></button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><h2>通知</h2></div>
+            <div class="card-body">
+              <div class="set-row">
+                <div class="set-text"><div class="set-name">任务到期提醒</div><div class="set-desc">提前 1 天推送</div></div>
+                <button class="switch on" aria-label="任务到期提醒"><i></i></button>
+              </div>
+              <div class="set-row">
+                <div class="set-text"><div class="set-name">自动化运行结果</div><div class="set-desc">失败时立即通知</div></div>
+                <button class="switch on" aria-label="自动化运行结果"><i></i></button>
+              </div>
+              <div class="set-row">
+                <div class="set-text"><div class="set-name">每日摘要邮件</div><div class="set-desc">每天 08:30 汇总昨日进展</div></div>
+                <button class="switch" aria-label="每日摘要邮件"><i></i></button>
+              </div>
+              <div class="set-row">
+                <div class="set-text"><div class="set-name">团队协作动态</div><div class="set-desc">成员更新文档时提醒</div></div>
+                <button class="switch on" aria-label="团队协作动态"><i></i></button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head"><h2>模型与额度</h2><span class="tag">Pro</span></div>
+            <div class="card-body">
+              <div class="field"><label for="setModel">默认模型</label>
+                <select id="setModel">
+                  <option>Nova-3.5（均衡）</option>
+                  <option>Nova-3.5-Turbo（更快）</option>
+                  <option>Nova-4-Pro（更强推理）</option>
+                </select>
+              </div>
+              <div class="field"><label for="setCtx">上下文长度</label>
+                <select id="setCtx">
+                  <option>32k tokens</option>
+                  <option>64k tokens</option>
+                  <option>128k tokens</option>
+                </select>
+              </div>
+              <div class="set-row" style="display:block;padding-top:4px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+                  <span class="set-name">本月额度</span>
+                  <span style="margin-left:auto;font-size:11.5px;color:var(--text-3)">1,240 / 4,000 次</span>
+                </div>
+                <div class="progress-bar"><i style="width:31%"></i></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Command palette -->
+<div class="palette-wrap" id="paletteWrap" role="dialog" aria-modal="true" aria-label="命令面板">
+  <div class="palette">
+    <div class="palette-input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="paletteInput" placeholder="输入命令或搜索内容…" autocomplete="off" />
+      <kbd style="font-size:10.5px;color:var(--text-3);border:1px solid var(--border);border-radius:4px;padding:1px 5px">ESC</kbd>
+    </div>
+    <div class="palette-list" id="paletteList">
+      <div class="p-item" data-go="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        新建 AI 对话 <span class="p-group">对话</span>
+      </div>
+      <div class="p-item" data-go="tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5h10M9 12h10M9 19h10"/><path d="M4 5l1.4 1.4L7.6 4M4 12l1.4 1.4L7.6 11M4 19l1.4 1.4L7.6 18"/></svg>
+        创建任务 <span class="p-group">任务</span>
+      </div>
+      <div class="p-item" data-go="kb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 16v2.5A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V16"/></svg>
+        导入资料 <span class="p-group">知识库</span>
+      </div>
+      <div class="p-item" data-go="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        搜索历史对话 <span class="p-group">对话</span>
+      </div>
+      <div class="p-item" data-toast="切换主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        切换明暗主题 <span class="p-group">外观</span>
+      </div>
+      <div class="p-item" data-go="auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>
+        自动化流程 <span class="p-group">自动化</span>
+      </div>
+    </div>
+    <div class="palette-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+      <span><kbd>↵</kbd> 确认</span>
+      <span><kbd>ESC</kbd> 关闭</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+  <span id="toastText"></span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 工具 ---------- */
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+  var toastEl = $('#toast');
+  var toastText = $('#toastText');
+  var toastTimer = null;
+
+  function toast(msg) {
+    toastText.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+  }
+
+  /* ---------- 日期 & 问候 ---------- */
+  var now = new Date();
+  var week = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  $('#pageDate').textContent =
+    now.getFullYear() + ' 年 ' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日 · ' + week[now.getDay()];
+
+  var h = now.getHours();
+  var greet = h < 6 ? '凌晨好' : h < 11 ? '早上好' : h < 13 ? '中午好' : h < 18 ? '下午好' : '晚上好';
+  $('#greeting').textContent = greet + '，海江';
+
+  /* ---------- 视图路由 ---------- */
+  var nameToView = {
+    '工作台': 'home',
+    'AI 对话': 'chat',
+    '知识库': 'kb',
+    '任务': 'tasks',
+    '自动化': 'auto',
+    '团队空间': 'team',
+    '设置': 'settings'
+  };
+
+  var viewTitle = {
+    home: '工作台', chat: 'AI 对话', kb: '知识库',
+    tasks: '任务', auto: '自动化', team: '团队空间', settings: '设置'
+  };
+
+  var content = $('#content');
+
+  function go(view) {
+    if (!document.getElementById('view-' + view)) return;
+    $$('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + view); });
+    $$('.nav-item').forEach(function (b) {
+      b.classList.toggle('active', nameToView[b.dataset.name] === view);
+    });
+    $('#pageTitle').textContent = viewTitle[view];
+    content.scrollTop = 0;
+    if (view === 'chat' && typeof pageChat !== 'undefined') pageChat.scroll();
+  }
+
+  $$('.nav-item').forEach(function (btn) {
+    btn.addEventListener('click', function () { go(nameToView[btn.dataset.name] || 'home'); });
+  });
+
+  $$('[data-go]').forEach(function (el) {
+    el.addEventListener('click', function () { go(el.dataset.go); });
+  });
+
+  /* ---------- 主题 ---------- */
+  var root = document.documentElement;
+  var themeIcon = $('#themeIcon');
+  var sunPath = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>';
+  var moonPath = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+
+  function applyTheme(dark) {
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    themeIcon.innerHTML = dark ? sunPath : moonPath;
+    $$('.theme-opt').forEach(function (o) {
+      o.classList.toggle('active', (o.dataset.themeVal === 'dark') === dark);
+    });
+    try { localStorage.setItem('nova-theme', dark ? 'dark' : 'light'); } catch (e) { /* noop */ }
+  }
+
+  function toggleTheme() { applyTheme(root.getAttribute('data-theme') !== 'dark'); }
+
+  try {
+    if (localStorage.getItem('nova-theme') === 'dark') applyTheme(true);
+  } catch (e) { /* 隐私模式下忽略 */ }
+
+  $('#themeBtn').addEventListener('click', toggleTheme);
+
+  $$('.theme-opt').forEach(function (opt) {
+    opt.addEventListener('click', function () { applyTheme(opt.dataset.themeVal === 'dark'); });
+  });
+
+  /* ---------- 开关 ---------- */
+  $$('.switch').forEach(function (sw) {
+    sw.addEventListener('click', function () { sw.classList.toggle('on'); });
+  });
+
+  /* ---------- 待办 ---------- */
+  var todoList = $('#todoList');
+
+  function refreshTodo() {
+    var all = $$('.todo', todoList);
+    var done = all.filter(function (t) { return t.classList.contains('done'); }).length;
+    var pct = all.length ? Math.round((done / all.length) * 100) : 0;
+    $('#todoCount').textContent = done + ' / ' + all.length;
+    $('#todoBar').style.width = pct + '%';
+    $('#todoPct').textContent = pct + '%';
+  }
+
+  todoList.addEventListener('click', function (e) {
+    var item = e.target.closest('.todo');
+    if (!item) return;
+    item.classList.toggle('done');
+    refreshTodo();
+  });
+
+  $('#addTodo').addEventListener('click', function () {
+    var text = prompt('新任务：');
+    if (!text) return;
+    var trimmed = text.trim();
+    if (!trimmed) return;
+
+    var el = document.createElement('div');
+    el.className = 'todo';
+    el.dataset.prio = 'p2';
+
+    var check = document.createElement('span');
+    check.className = 'check';
+    check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>';
+
+    var span = document.createElement('span');
+    span.className = 'todo-text';
+    span.textContent = trimmed;          // textContent 防 XSS
+
+    var prio = document.createElement('span');
+    prio.className = 'prio p2';
+    prio.textContent = 'P2';
+
+    el.appendChild(check);
+    el.appendChild(span);
+    el.appendChild(prio);
+    todoList.appendChild(el);
+    refreshTodo();
+    toast('已添加任务');
+  });
+
+  refreshTodo();
+
+  /* ---------- 聊天（工作台 & 对话页共用） ---------- */
+  var aiAva = '<div class="msg-ava"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.4L20 10.5l-5.8 2.1L12 18l-2.2-5.4L4 10.5l5.8-2.1L12 3z"/></svg></div>';
+
+  function mockReply(q) {
+    if (/周报/.test(q)) return '周报初稿已生成：本周完成 9 项任务，推进 3 个流程，风险 2 项。已按「进展 / 风险 / 下周计划」三段式结构整理，可在知识库「周报」目录查看。';
+    if (/催办|消息|设计组/.test(q)) return '已生成催办消息：<建议今天 16:00 前同步设计稿终稿，避免影响品牌视觉改版上线>。需要我直接发到「设计组」群吗？';
+    if (/会议|纪要/.test(q)) return '已读取今天的 2 场会议记录，要点 7 条、待办 4 项。需要我把它们拆成任务并指派负责人吗？';
+    if (/风险|延期|对比/.test(q)) return '本周识别到 2 项延期风险：「品牌视觉改版」与「数据看板 v2 联调」，均需在本周三前确认排期。相较上周，风险项减少 1 项，但缓冲时间更紧。';
+    if (/任务|拆成/.test(q)) return '已拆成 3 个任务：① 16:00 前向设计组确认终稿；② 对齐研发联调排期；③ 更新风险清单并在周会同步。均设为 P1。';
+    if (/PDF|pdf|文件/.test(q)) return '已解析该文档，共 24 页，提取要点 11 条与 3 张关键图表。需要我输出成一页速览吗？';
+    return '收到。我可以基于你的任务、文件和知识库给出结论，也可以直接帮你生成任务或文档。当前为演示模式，接入真实模型接口后即可对话。';
+  }
+
+  function createChat(logEl, inputEl, sendBtn) {
+    var sending = false;
+
+    function addMsg(role, text) {
+      var el = document.createElement('div');
+      el.className = 'msg' + (role === 'me' ? ' me' : '');
+      el.innerHTML = (role === 'me' ? '<div class="msg-ava">海</div>' : aiAva) + '<div class="bubble"></div>';
+      el.querySelector('.bubble').textContent = text;   // textContent 防 XSS
+      logEl.appendChild(el);
+      logEl.scrollTop = logEl.scrollHeight;
+      return el;
+    }
+
+    function addTyping() {
+      var el = document.createElement('div');
+      el.className = 'msg';
+      el.innerHTML = aiAva + '<div class="bubble" style="padding:0"><div class="typing"><i></i><i></i><i></i></div></div>';
+      logEl.appendChild(el);
+      logEl.scrollTop = logEl.scrollHeight;
+      return el;
+    }
+
+    function autoResize() {
+      inputEl.style.height = 'auto';
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 96) + 'px';
+    }
+
+    function send() {
+      var text = inputEl.value.trim();
+      if (!text || sending) return;
+      sending = true;
+      addMsg('me', text);
+      inputEl.value = '';
+      autoResize();
+
+      var typing = addTyping();
+      setTimeout(function () {
+        typing.remove();
+        addMsg('ai', mockReply(text));
+        sending = false;
+      }, 820);
+    }
+
+    sendBtn.addEventListener('click', send);
+    inputEl.addEventListener('input', autoResize);
+    inputEl.addEventListener('keydown', function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    return {
+      input: inputEl,
+      resize: autoResize,
+      addMsg: addMsg,
+      reset: function () { logEl.innerHTML = ''; },
+      scroll: function () { logEl.scrollTop = logEl.scrollHeight; }
+    };
+  }
+
+  var homeChat = createChat($('#chatLog'), $('#input'), $('#sendBtn'));
+  var pageChat = createChat($('#chatLog2'), $('#input2'), $('#sendBtn2'));
+  pageChat.scroll();
+
+  function bindChips(container, chat) {
+    container.addEventListener('click', function (e) {
+      var chip = e.target.closest('.chip');
+      if (!chip) return;
+      chat.input.value = chip.textContent;
+      chat.resize();
+      chat.input.focus();
+    });
+  }
+
+  bindChips($('#chips'), homeChat);
+  bindChips($('#chips2'), pageChat);
+
+  $('#clearChat').addEventListener('click', function () {
+    homeChat.reset();
+    homeChat.addMsg('ai', '对话已清空，我们重新开始。今天想先处理哪件事？');
+    toast('对话已清空');
+  });
+
+  $('#newChatBtn').addEventListener('click', function () {
+    go('chat');
+    pageChat.input.focus();
+  });
+
+  $('#chatNewBtn').addEventListener('click', function () {
+    pageChat.reset();
+    $('#chatPageTitle').textContent = '新的对话';
+    pageChat.input.value = '';
+    pageChat.input.focus();
+    toast('已创建新对话');
+  });
+
+  $('#importBtn').addEventListener('click', function () { go('kb'); });
+
+  /* ---------- 对话页：会话切换 ---------- */
+  $('#convList').addEventListener('click', function (e) {
+    var item = e.target.closest('.conv-item');
+    if (!item) return;
+    $$('.conv-item').forEach(function (i) { i.classList.remove('active'); });
+    item.classList.add('active');
+    var title = item.querySelector('.conv-title');
+    $('#chatPageTitle').textContent = title.childNodes[0].textContent.trim();
+  });
+
+  /* ---------- 任务页：筛选 ---------- */
+  $('#taskFilter').addEventListener('click', function (e) {
+    var chip = e.target.closest('.chip');
+    if (!chip) return;
+    $$('.chip', $('#taskFilter')).forEach(function (c) { c.classList.remove('active-chip'); });
+    chip.classList.add('active-chip');
+
+    var f = chip.dataset.filter;
+    $$('#view-tasks .task-card').forEach(function (card) {
+      var show = f === 'all' ||
+        (f === 'p1' && card.dataset.prio === 'p1') ||
+        (f === 'late' && card.dataset.late === '1');
+      card.style.display = show ? '' : 'none';
+    });
+  });
+
+  $('#taskNewBtn').addEventListener('click', function () {
+    var text = prompt('新任务名称：');
+    if (!text || !text.trim()) return;
+    var card = document.createElement('div');
+    card.className = 'task-card';
+    card.dataset.prio = 'p2';
+
+    var top = document.createElement('div');
+    top.className = 'task-top';
+    top.innerHTML = '<span class="prio p2">P2</span><span class="task-date">待排期</span>';
+
+    var title = document.createElement('div');
+    title.className = 'task-title';
+    title.textContent = text.trim();
+
+    card.appendChild(top);
+    card.appendChild(title);
+    $('#view-tasks .board-col').appendChild(card);
+    toast('已添加到「待处理」');
+  });
+
+  /* ---------- 知识库页：筛选 ---------- */
+  $('#kbSearch').addEventListener('input', function () {
+    var kw = this.value.trim().toLowerCase();
+    var visible = 0;
+    $$('#kbRows .file-row').forEach(function (row) {
+      var hit = row.textContent.toLowerCase().indexOf(kw) > -1;
+      row.style.display = hit ? '' : 'none';
+      if (hit) visible++;
+    });
+    $('#kbCount').textContent = visible + ' 条';
+  });
+
+
+  /* ---------- 命令面板 ---------- */
+  var wrap = $('#paletteWrap');
+  var pInput = $('#paletteInput');
+  var items = $$('.p-item');
+  var sel = 0;
+
+  function renderSel() {
+    items.forEach(function (it, i) { it.classList.toggle('sel', i === sel); });
+  }
+
+  function openPalette() {
+    wrap.classList.add('open');
+    pInput.value = '';
+    items.forEach(function (it) { it.style.display = ''; });
+    sel = 0;
+    renderSel();
+    setTimeout(function () { pInput.focus(); }, 60);
+  }
+
+  function closePalette() {
+    wrap.classList.remove('open');
+    pInput.blur();
+  }
+
+  $('#searchBtn').addEventListener('click', openPalette);
+
+  wrap.addEventListener('click', function (e) {
+    if (e.target === wrap) closePalette();
+  });
+
+  pInput.addEventListener('input', function () {
+    var kw = pInput.value.trim().toLowerCase();
+    items.forEach(function (it) {
+      it.style.display = it.textContent.toLowerCase().indexOf(kw) > -1 ? '' : 'none';
+    });
+    sel = 0;
+    var visible = items.filter(function (it) { return it.style.display !== 'none'; });
+    if (visible[0]) { items.forEach(function (it) { it.classList.remove('sel'); }); visible[0].classList.add('sel'); }
+  });
+
+  pInput.addEventListener('keydown', function (e) {
+    var visible = items.filter(function (it) { return it.style.display !== 'none'; });
+    if (!visible.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      sel = Math.min(sel + 1, visible.length - 1);
+      visible.forEach(function (it, i) { it.classList.toggle('sel', i === sel); });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      sel = Math.max(sel - 1, 0);
+      visible.forEach(function (it, i) { it.classList.toggle('sel', i === sel); });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (visible[sel]) visible[sel].click();
+    }
+  });
+
+  items.forEach(function (it) {
+    it.addEventListener('click', function () {
+      if (it.dataset.go) go(it.dataset.go);
+      else if (it.dataset.toast === '切换主题') toggleTheme();
+      else if (it.dataset.toast) toast(it.dataset.toast);
+      closePalette();
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      wrap.classList.contains('open') ? closePalette() : openPalette();
+    }
+    if (e.key === 'Escape' && wrap.classList.contains('open')) closePalette();
+  });
+
+  /* ---------- 通用 toast 绑定 ---------- */
+  $$('[data-toast]').forEach(function (el) {
+    if (el.classList.contains('p-item')) return;
+    el.addEventListener('click', function () {
+      var msg = el.dataset.toast;
+      if (msg) toast(msg);
+    });
+  });
+
+  $('#bellBtn').addEventListener('click', function () { toast('2 条新通知：周会提醒、流程审批'); });
+})();
+</script>
+</body>
+</html>

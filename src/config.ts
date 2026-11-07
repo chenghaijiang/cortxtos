@@ -27,6 +27,17 @@ export interface CortxtosConfig {
 export const CONFIG_DIR = join(homedir(), ".cortxtos");
 export const CONFIG_PATH = process.env.CORTXTOS_CONFIG ?? join(CONFIG_DIR, "cortxtos.json");
 
+// 向量索引缓存（票 09）：放 vault 外，可整体删除重建，无数据主权损失
+export const INDEX_DIR = join(CONFIG_DIR, "index");
+/** 索引库路径：每次调用时读 env（测试可指向临时库） */
+export function indexPath(): string {
+  return process.env.CORTXTOS_INDEX_DB ?? join(INDEX_DIR, "vault.db");
+}
+/** 脏标记清单：跟着索引库走（同一目录），记录重建后新写入的笔记 */
+export function dirtyIndexPath(): string {
+  return indexPath() + ".dirty";
+}
+
 export function expandHome(p: string): string {
   if (p === "~") return homedir();
   if (p.startsWith("~/")) return join(homedir(), p.slice(2));
